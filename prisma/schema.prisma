@@ -1,0 +1,114 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["selectRelationCount"]
+}
+
+model User {
+  id             Int         @id @default(autoincrement())
+  email          String      @unique
+  name           String?
+  username       String      @unique
+  password       String
+  posts          Post[]      @relation(name: "UserPosts")
+  tagsModerator  Tag[]       @relation(name: "UsersTagsModerator")
+  tagsFollowing  Tag[]       @relation(name: "UsersTagsFollowing")
+  postsHeart     Post[]      @relation(name: "PostsUsersHeart")
+  postsUnicorn   Post[]      @relation(name: "PostsUsersUnicorn")
+  postsBookmark  Post[]      @relation(name: "PostsUsersBookmark")
+  postsSubscribe Subscribe[] @relation(name: "UserSubscribes")
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  comments       Comment[]   @relation(name: "UserComments")
+  commentsLike   Comment[]   @relation(name: "CommentsLike")
+
+  avatar                String?
+  bio                   String?
+  displayEmailOnProfile Boolean   @default(false)
+  location              Decimal[]
+  role                  UserRole  @default(USER)
+}
+
+model Post {
+  id          Int         @id @default(autoincrement())
+  title       String      @db.VarChar(255)
+  content     String
+  slug        String
+  poster      String?
+  readTime    Int
+  tags        Tag[]       @relation(name: "PostsTags")
+  subscribes  Subscribe[] @relation(name: "PostSubscribes")
+  published   Boolean     @default(false)
+  publishedAt DateTime?
+  author      User        @relation(name: "UserPosts", fields: [authorId], references: [id])
+  authorId    Int
+  hearts      User[]      @relation(name: "PostsUsersHeart")
+  unicorns    User[]      @relation(name: "PostsUsersUnicorn")
+  bookmarks   User[]      @relation(name: "PostsUsersBookmark")
+  comments    Comment[]   @relation(name: "PostComments")
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+}
+
+model Subscribe {
+  id     Int  @id @default(autoincrement())
+  postId Int
+  post   Post @relation(name: "PostSubscribes", fields: [postId], references: [id])
+
+  userId    Int
+  user      User          @relation(name: "UserSubscribes", fields: [userId], references: [id])
+  type      SubscribeType
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+model Tag {
+  id                  Int      @id @default(autoincrement())
+  poster              String?
+  name                String   @unique
+  slug                String?
+  description         String?
+  submissionGuideline String?
+  about               String
+  moderators          User[]   @relation(name: "UsersTagsModerator")
+  posts               Post[]   @relation(name: "PostsTags")
+  followings          User[]   @relation(name: "UsersTagsFollowing")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model Comment {
+  id        Int       @id @default(autoincrement())
+  content   String?
+  image     String?
+  replies   Comment[] @relation("CommentReplies")
+  likes     User[]    @relation(name: "CommentsLike")
+  author    User      @relation(name: "UserComments", fields: [authorId], references: [id])
+  authorId  Int
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  Comment   Comment?  @relation("CommentReplies", fields: [commentId], references: [id])
+  commentId Int?
+  postId    Int
+  post      Post      @relation(name: "PostComments", fields: [postId], references: [id])
+}
+
+enum UserRole {
+  USER // normal reader 
+  MODERTOR // handle and verify posts
+  ADMIN // handle USER and MODERATOR
+}
+
+enum SubscribeType {
+  ALL //You’ll receive notifications for all new comments.
+  TOP_LEVEL //You’ll receive notifications only for all new top-level comments.
+  POST_AUTHOR //You’ll receive notifications only if post author sends a new comment.
+}
