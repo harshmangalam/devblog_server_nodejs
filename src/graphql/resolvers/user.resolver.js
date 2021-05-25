@@ -4,9 +4,35 @@ const { matchPassword, generateHash } = require("../../utils/auth.util");
 module.exports = {
   Query: {
     async users(_, __, { prisma }) {
-      const users = await prisma.user.findMany();
+      try {
+        const users = await prisma.user.findMany({
+          include: {
+            _count: true,
+          },
+        });
 
-      return users;
+        return users;
+      } catch (error) {
+        return error;
+      }
+    },
+
+    async user(_, { username }, { prisma }) {
+      try {
+        const user = await prisma.user.findUnique({
+          where: {
+            username,
+          },
+
+          include: {
+            _count: true,
+          },
+        });
+
+        return user;
+      } catch (error) {
+        return error;
+      }
     },
   },
 

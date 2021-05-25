@@ -11,6 +11,11 @@ module.exports = gql`
     about: String!
     createdAt: String
     updatedAt: String
+    _count: TagRelationCount
+  }
+
+  type TagRelationCount {
+    posts: Int
   }
 
   input TagInput {
@@ -23,6 +28,7 @@ module.exports = gql`
 
   extend type Query {
     tags: [Tag]
+    tag(slug: String!): Tag!
   }
 
   extend type Mutation {

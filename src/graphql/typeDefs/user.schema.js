@@ -11,6 +11,11 @@ module.exports = gql`
     location: [Float]
     createdAt: String
     updatedAt: String
+    _count:UserRelationCount
+  }
+
+  type UserRelationCount {
+    posts:Int
   }
 
   input UpdateProfileInput {
@@ -23,6 +28,7 @@ module.exports = gql`
 
   extend type Query {
     users: [User]!
+    user(username: String!): User!
   }
 
   extend type Mutation {

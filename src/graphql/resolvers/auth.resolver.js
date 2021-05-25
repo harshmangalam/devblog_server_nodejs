@@ -1,4 +1,8 @@
-const { UserInputError, AuthenticationError } = require("apollo-server-errors");
+const {
+  UserInputError,
+  AuthenticationError,
+  ValidationError,
+} = require("apollo-server-errors");
 const {
   generateHash,
   generateUsername,
@@ -10,22 +14,49 @@ module.exports = {
   Query: {
     // fetch current user
     async me(_, __, { prisma, userId }) {
-      const user = await prisma.user.findUnique({
-        where: {
-          id: userId,
-        },
-      });
+      try {
+        if (!userId) {
 
-      if (!user) {
-        throw new AuthenticationError("token is missing");
+          const error = new Error();
+          error.code = "USERID_MISSING";
+          error.message = "userid missing";
+          throw error;
+        }
+        const user = await prisma.user.findUnique({
+          where: {
+            id: userId,
+          },
+        });
+
+        if (!user) {
+          throw new UserInputError("USER_NOT_FOUND", {
+            message: "User not found",
+          });
+        }
+
+        return user
+      } catch (error) {
+        return error;
       }
-      return user;
     },
   },
   Mutation: {
     // login user
     async login(_, { email, password }, { prisma }) {
       try {
+        let error = {};
+
+        if (!email || email.trim.length) {
+          error = { ...error, email: "Email must not be empty" };
+        }
+        if (!password) {
+          error = { ...error, password: "Password must not be empty" };
+        }
+
+        if (Object.keys(error).length) {
+          console.log(error);
+          throw new UserInputError("EMPTY_FIELDS", error);
+        }
         const user = await prisma.user.findUnique({
           where: {
             email,
@@ -48,10 +79,7 @@ module.exports = {
 
         const token = generateJwtToken(user.id);
 
-        return {
-          user,
-          token,
-        };
+        return { token, user };
       } catch (error) {
         return error;
       }
@@ -60,6 +88,24 @@ module.exports = {
     // create new account
     async register(_, { name, email, password }, { prisma }) {
       try {
+        let error = {};
+
+        if (!email || email.trim.length) {
+          error = { ...error, email: "Email must not be empty" };
+        }
+        if (!password) {
+          error = { ...error, password: "Password must not be empty" };
+        }
+
+        if (!name) {
+          error = { ...error, name: "Name must not be empty" };
+        }
+
+        if (Object.keys(error).length) {
+          console.log(error);
+          throw new UserInputError("EMPTY_FIELDS", error);
+        }
+
         const checkEmail = await prisma.user.findUnique({
           where: {
             email,

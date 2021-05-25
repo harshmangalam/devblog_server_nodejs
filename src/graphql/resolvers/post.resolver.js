@@ -1,17 +1,20 @@
 const { AuthenticationError, UserInputError } = require("apollo-server-errors");
 const slugify = require("../../utils/slugify");
-
+const shortid = require("shortid");
 module.exports = {
   Query: {
-    async posts(_, { include, orderBy, sinceDay, pagination }, { prisma }) {
+    async posts(
+      _,
+      { include, orderBy, sinceDay, pagination, filter },
+      { prisma }
+    ) {
       try {
         let posts = await prisma.post.findMany({
-          // where:{
-          //   createdAt: {
-          //     lte: new Date(),
-          //     gte: new Date(Date.now() - 1000 * 60 * 60 * 24 * sinceDay),
-          //   },
-          // },
+          where: filter
+            ? {
+                ...filter,
+              }
+            : undefined,
           orderBy: orderBy ? { [orderBy]: "desc" } : undefined,
           include: {
             tags: include ? include.includes("tags") : false,
@@ -24,8 +27,8 @@ module.exports = {
             _count: true,
           },
 
-          skip: pagination?.skip || 0,
-          take: pagination?.take || 1,
+          skip: pagination?.skip || undefined,
+          take: pagination?.take || undefined,
         });
 
         const postCounts = await prisma.post.count();
@@ -42,14 +45,23 @@ module.exports = {
       }
     },
 
-    async post(_, { postId, include = {} }, { prisma }) {
+    async post(_, { slug, include }, { prisma }) {
       try {
         const post = await prisma.post.findUnique({
           where: {
-            id: Number(postId),
+            slug,
           },
 
-          include: Object.keys(include).length ? include : undefined,
+          include: {
+            tags: include ? include.includes("tags") : false,
+            subscribes: include ? include.includes("subscribes") : false,
+            author: include ? include.includes("author") : false,
+            hearts: include ? include.includes("hearts") : false,
+            unicorns: include ? include.includes("unicorns") : false,
+            bookmarks: include ? include.includes("bookmarks") : false,
+            comments: include ? include.includes("comments") : false,
+            _count: true,
+          },
         });
 
         if (!post)
@@ -75,7 +87,7 @@ module.exports = {
         }
         const maxWordPerMin = 275;
 
-        const slug = slugify(title);
+        const slug = slugify(title) + "-" + shortid.generate();
         const readTime = Math.ceil(postInput.content.length / maxWordPerMin);
 
         const post = await prisma.post.create({

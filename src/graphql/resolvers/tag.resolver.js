@@ -4,7 +4,27 @@ module.exports = {
   Query: {
     async tags(_, __, { prisma }) {
       try {
-        const tags = await prisma.tag.findMany();
+        const tags = await prisma.tag.findMany({
+          include: {
+            _count: true,
+          },
+        });
+        return tags;
+      } catch (error) {
+        return error;
+      }
+    },
+
+    async tag(_, { slug }, { prisma }) {
+      try {
+        const tags = await prisma.tag.findUnique({
+          where: {
+            slug,
+          },
+          include: {
+            _count: true,
+          },
+        });
         return tags;
       } catch (error) {
         return error;

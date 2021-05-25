@@ -21,10 +21,10 @@ module.exports = gql`
     unicorns: [User]
     bookmarks: [User]
 
-    _count: CountPostRelationData
+    _count: PostRelationCount
   }
 
-  type CountPostRelationData {
+  type PostRelationCount {
     tags: Int
     subscribes: Int
     hearts: Int
@@ -75,7 +75,13 @@ module.exports = gql`
     updatedAt
   }
 
+  input PostAuthorFilterRule {
+    username: String
+  }
 
+  input PostFilterInput {
+    author: PostAuthorFilterRule
+  }
 
   extend type Query {
     posts(
@@ -83,8 +89,9 @@ module.exports = gql`
       orderBy: PostOrderByField # order posts by field in assending or descending order
       sinceDay: Int # calculate post published between today and provided sinceDay
       pagination: PaginationInput # provide take and skip for pagination
+      filter: PostFilterInput
     ): PostsResponse!
-    post(postId: ID!, include: [PostIncludeInput]): Post!
+    post(slug: String!, include: [PostIncludeInput]): Post!
   }
 
   extend type Mutation {
