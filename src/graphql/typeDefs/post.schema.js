@@ -5,6 +5,7 @@ module.exports = gql`
     title: String!
     content: String!
     poster: String
+    posterPublicId: String
     readTime: Int!
     slug: String!
     published: Boolean!
@@ -43,6 +44,7 @@ module.exports = gql`
     title: String!
     content: String!
     poster: String
+    posterPublicId: String
     tags: [ID]
   }
 
@@ -75,12 +77,21 @@ module.exports = gql`
     updatedAt
   }
 
+  input PostTagFilterField {
+    name: String
+  }
+
+  input PostTagFilterRule {
+    some: PostTagFilterField
+  }
+
   input PostAuthorFilterRule {
     username: String
   }
 
   input PostFilterInput {
     author: PostAuthorFilterRule
+    tags: PostTagFilterRule
   }
 
   extend type Query {

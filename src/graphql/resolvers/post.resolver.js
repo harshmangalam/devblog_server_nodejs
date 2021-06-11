@@ -3,11 +3,7 @@ const slugify = require("../../utils/slugify");
 const shortid = require("shortid");
 module.exports = {
   Query: {
-    async posts(
-      _,
-      { include, orderBy, sinceDay, pagination, filter },
-      { prisma }
-    ) {
+    async posts(_, { include, orderBy, pagination, filter }, { prisma }) {
       try {
         let posts = await prisma.post.findMany({
           where: filter
@@ -79,7 +75,9 @@ module.exports = {
   Mutation: {
     async createPost(_, { postInput }, { prisma, userId }) {
       try {
-        let { title, content, poster, tags } = postInput;
+        let { title, content, poster, tags, posterPublicId } = postInput;
+        console.log(poster, posterPublicId);
+
         if (!userId) {
           throw new AuthenticationError(
             "You should login first to create post"
@@ -96,6 +94,7 @@ module.exports = {
             content,
             slug,
             poster,
+            posterPublicId,
             tags: tags?.length
               ? {
                   connect: [
@@ -240,6 +239,10 @@ module.exports = {
                 disconnect: [{ id: userId }],
               },
             },
+
+            include: {
+              _count: true,
+            },
           });
         } else {
           updatePostReaction = await prisma.post.update({
@@ -250,6 +253,9 @@ module.exports = {
               [reactionType]: {
                 connect: [{ id: userId }],
               },
+            },
+            include: {
+              _count: true,
             },
           });
         }

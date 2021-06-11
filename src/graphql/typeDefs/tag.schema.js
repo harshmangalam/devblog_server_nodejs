@@ -6,6 +6,7 @@ module.exports = gql`
     poster: String
     name: String!
     description: String
+    posts:[Post]
     slug: String
     submissionGuideline: String
     about: String!
@@ -18,6 +19,11 @@ module.exports = gql`
     posts: Int
   }
 
+  enum TagIncludeInput {
+    posts
+  }
+
+
   input TagInput {
     poster: String
     name: String!
@@ -28,7 +34,7 @@ module.exports = gql`
 
   extend type Query {
     tags: [Tag]
-    tag(slug: String!): Tag!
+    tag(slug: String!,include: [TagIncludeInput]): Tag!
   }
 
   extend type Mutation {

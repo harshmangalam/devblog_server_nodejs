@@ -15,13 +15,15 @@ module.exports = {
       }
     },
 
-    async tag(_, { slug }, { prisma }) {
+    async tag(_, { slug, include }, { prisma }) {
       try {
         const tags = await prisma.tag.findUnique({
           where: {
             slug,
           },
+
           include: {
+            posts: include ? include.includes("posts") : false,
             _count: true,
           },
         });

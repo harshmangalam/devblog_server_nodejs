@@ -37,24 +37,25 @@ model User {
 }
 
 model Post {
-  id          Int         @id @default(autoincrement())
-  title       String      @db.VarChar(255)
-  content     String
-  slug        String      @unique
-  poster      String?
-  readTime    Int
-  tags        Tag[]       @relation(name: "PostsTags")
-  subscribes  Subscribe[] @relation(name: "PostSubscribes")
-  published   Boolean     @default(false)
-  publishedAt DateTime?
-  author      User        @relation(name: "UserPosts", fields: [authorId], references: [id])
-  authorId    Int
-  hearts      User[]      @relation(name: "PostsUsersHeart")
-  unicorns    User[]      @relation(name: "PostsUsersUnicorn")
-  bookmarks   User[]      @relation(name: "PostsUsersBookmark")
-  comments    Comment[]   @relation(name: "PostComments")
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id             Int         @id @default(autoincrement())
+  title          String      @db.VarChar(255)
+  content        String
+  slug           String      @unique
+  poster         String?
+  posterPublicId String?
+  readTime       Int
+  tags           Tag[]       @relation(name: "PostsTags")
+  subscribes     Subscribe[] @relation(name: "PostSubscribes")
+  published      Boolean     @default(false)
+  publishedAt    DateTime?
+  author         User        @relation(name: "UserPosts", fields: [authorId], references: [id])
+  authorId       Int
+  hearts         User[]      @relation(name: "PostsUsersHeart")
+  unicorns       User[]      @relation(name: "PostsUsersUnicorn")
+  bookmarks      User[]      @relation(name: "PostsUsersBookmark")
+  comments       Comment[]   @relation(name: "PostComments")
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 
 }
 

@@ -7,6 +7,7 @@ const http = require("http");
 const express = require("express");
 const { PORT } = require("./config");
 
+const cloudinaryRoute = require("./routes/cloudinary");
 async function startApolloServer() {
   const app = express();
 
@@ -15,6 +16,7 @@ async function startApolloServer() {
     resolvers,
     context,
     tracing: true,
+    uploads: false,
   });
   await server.start();
 
@@ -22,18 +24,16 @@ async function startApolloServer() {
 
   app.use(
     cors({
-      credentials: true,
       optionsSuccessStatus: 200,
-      origin: "*",
+      origin: ["http://localhost:3000"],
     })
   );
 
-  app.use((req, res, next) => {
-    return res.status(200).json({
-      success: true,
-      message: "Express server up & running",
-    });
+  app.get("/", (req, res) => {
+    return res.status(200).json({ status: "success" });
   });
+
+  app.use("/cloudinary", cloudinaryRoute);
 
   const httpServer = http.createServer(app);
 
